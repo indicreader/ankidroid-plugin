@@ -112,27 +112,27 @@ export default function RoomConsole({
   );
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full" id="room-console-wrapper">
+    <div className="bg-[#0f111a] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full" id="room-console-wrapper">
       
       {/* DB Console Header */}
-      <div className="p-5 border-b border-slate-800 bg-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 border-b border-white/5 bg-[#0a0c12] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-400/20">
             <Database className="h-5 w-5" />
           </div>
           <div>
             <h2 className="text-lg font-sans font-semibold tracking-tight text-slate-100 flex items-center gap-1.5">
               Room Relational Diagnostic DB
-              <span className="text-[10px] font-mono bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-400/20">SQLite v3.45</span>
+              <span className="text-[10px] font-mono bg-blue-500/10 text-blue-405 px-2 py-0.5 rounded-full border border-blue-400/20">SQLite v3.45</span>
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 font-sans">
               Inspect active database storage tables and entities updated in real-time by QuickJS plugin triggers.
             </p>
           </div>
         </div>
 
         {/* Console Nav Tabs */}
-        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl self-start sm:self-auto shrink-0">
+        <div className="flex bg-[#050608] border border-white/5 p-1 rounded-xl self-start sm:self-auto shrink-0">
           {[
             { id: 'cards', label: 'cards' },
             { id: 'decks', label: 'decks' },
@@ -145,7 +145,7 @@ export default function RoomConsole({
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-3 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
                 activeTab === tab.id 
-                  ? 'bg-slate-800 text-indigo-300 font-semibold' 
+                  ? 'bg-blue-600 text-white font-semibold shadow-[0_0_12px_rgba(37,99,235,0.25)]' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
               id={`tab-button-${tab.id}`}
@@ -161,7 +161,7 @@ export default function RoomConsole({
         
         {/* CARDS TABLE view */}
         {activeTab === 'cards' && (
-          <div className="space-y-4 flex flex-col h-full">
+          <div className="space-y-4 flex flex-col h-full w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1">
@@ -171,14 +171,14 @@ export default function RoomConsole({
                   placeholder="Filter cards in memory..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-slate-950/60 border border-slate-800 text-slate-300 text-xs rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:border-indigo-500/60 placeholder-slate-500 font-mono"
+                  className="bg-[#050608]/80 border border-white/5 text-slate-300 text-xs rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:border-blue-500/40 placeholder-slate-500 font-mono"
                 />
               </div>
 
               {/* Add Card trigger */}
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition active:scale-[0.98] shrink-0"
+                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition active:scale-[0.98] shrink-0 shadow-[0_0_12px_rgba(37,99,235,0.25)]"
                 id="btn-show-add-form"
               >
                 <Plus className="h-4 w-4" />
@@ -188,14 +188,14 @@ export default function RoomConsole({
 
             {/* Add card Form */}
             {showAddForm && (
-              <form onSubmit={handleCreateCardSubmit} className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-4 animate-fade-in">
+              <form onSubmit={handleCreateCardSubmit} className="bg-immersive-panel p-4 rounded-xl border border-white/5 space-y-4 animate-fade-in w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">Target Deck Relations</label>
                     <select
                       value={newCardDeck}
                       onChange={(e) => setNewCardDeck(e.target.value)}
-                      className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 w-full focus:outline-none"
+                      className="bg-[#050608]/80 border border-white/5 text-xs text-slate-350 rounded-xl px-3 py-2 w-full focus:outline-none"
                     >
                       {decks.map(d => (
                         <option key={d.id} value={d.id}>{d.name}</option>
@@ -211,7 +211,7 @@ export default function RoomConsole({
                       placeholder="e.g. 犬 (いぬ)"
                       value={newCardFront}
                       onChange={(e) => setNewCardFront(e.target.value)}
-                      className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 w-full focus:outline-none"
+                      className="bg-[#050608]/80 border border-white/5 text-xs text-slate-350 rounded-xl px-3 py-2 w-full focus:outline-none"
                     />
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export default function RoomConsole({
                       placeholder="e.g. Dog (Canine helper)"
                       value={newCardBack}
                       onChange={(e) => setNewCardBack(e.target.value)}
-                      className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 w-full focus:outline-none"
+                      className="bg-[#050608]/80 border border-white/5 text-xs text-slate-350 rounded-xl px-3 py-2 w-full focus:outline-none"
                     />
                   </div>
 
@@ -236,7 +236,7 @@ export default function RoomConsole({
                       placeholder="e.g. Helper note or hint"
                       value={newCardHelper}
                       onChange={(e) => setNewCardHelper(e.target.value)}
-                      className="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 w-full focus:outline-none"
+                      className="bg-[#050608]/80 border border-white/5 text-xs text-slate-350 rounded-xl px-3 py-2 w-full focus:outline-none"
                     />
                   </div>
                 </div>
@@ -245,13 +245,13 @@ export default function RoomConsole({
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl"
+                    className="bg-[#0a0c12]/80 hover:bg-[#0f111a] text-slate-300 border border-white/5 text-xs px-3 py-2 rounded-xl"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                   >
                     Execute INSERT
                   </button>
@@ -260,11 +260,11 @@ export default function RoomConsole({
             )}
 
             {/* List Table Grid representing columns */}
-            <div className="border border-slate-800/80 rounded-2xl overflow-hidden flex-1 flex flex-col bg-slate-950/20">
+            <div className="border border-white/5 rounded-2xl overflow-hidden flex-1 flex flex-col bg-immersive-panel">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse font-mono text-xs">
                   <thead>
-                    <tr className="bg-slate-950/60 text-slate-400 uppercase tracking-wider border-b border-slate-800 select-none text-[10px]">
+                    <tr className="bg-[#0a0c12] text-slate-400 uppercase tracking-wider border-b border-white/5 select-none text-[10px]">
                       <th className="py-3 px-4">id</th>
                       <th className="py-3 px-4">front (varchar)</th>
                       <th className="py-3 px-4">back (text)</th>
@@ -273,7 +273,7 @@ export default function RoomConsole({
                       <th className="py-3 px-4">custom_metadata</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/30">
+                  <tbody className="divide-y divide-white/5">
                     {filteredCards.map((card) => (
                       <tr key={card.id} className="hover:bg-slate-800/10 transition-colors text-slate-300">
                         <td className="py-2.5 px-4 text-indigo-400 text-[10px]" title={card.id}>{card.id}</td>
@@ -285,12 +285,12 @@ export default function RoomConsole({
                           <div className="flex flex-wrap gap-1">
                             {card.customFields && Object.keys(card.customFields).length > 0 ? (
                               Object.entries(card.customFields).map(([key, val]) => (
-                                <span key={key} className="bg-slate-800/80 text-slate-450 px-1.5 py-0.5 rounded text-[9px] border border-slate-700/30 truncate max-w-[180px]" title={`${key}: ${val}`}>
+                                <span key={key} className="bg-[#050608]/80 text-[#94a3b8] px-1.5 py-0.5 rounded text-[9px] border border-white/5 truncate max-w-[180px]" title={`${key}: ${val}`}>
                                   {key}: {val}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[10px] text-slate-600 italic">empty state</span>
+                              <span className="text-[10px] text-slate-650 italic">empty state</span>
                             )}
                           </div>
                         </td>
@@ -305,11 +305,11 @@ export default function RoomConsole({
 
         {/* DECKS TABLE view */}
         {activeTab === 'decks' && (
-          <div className="space-y-4">
-            <div className="border border-slate-800/80 rounded-2xl overflow-hidden bg-slate-950/20">
+          <div className="space-y-4 w-full">
+            <div className="border border-white/5 rounded-2xl overflow-hidden bg-immersive-panel">
               <table className="w-full text-left border-collapse font-mono text-xs">
                 <thead>
-                  <tr className="bg-slate-950/60 text-slate-400 uppercase tracking-widest border-b border-slate-800 text-[10px]">
+                  <tr className="bg-[#0a0c12] text-slate-400 uppercase tracking-widest border-b border-white/5 text-[10px]">
                     <th className="py-3 px-4">id (pk)</th>
                     <th className="py-3 px-4">name (varchar)</th>
                     <th className="py-3 px-4">card_count (int)</th>
@@ -317,12 +317,12 @@ export default function RoomConsole({
                     <th className="py-3 px-4">created_at</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/30 text-slate-300">
+                <tbody className="divide-y divide-white/5 text-slate-300">
                   {decks.map((deck) => (
-                    <tr key={deck.id} className="hover:bg-slate-800/10 transition">
-                      <td className="py-3 px-4 text-indigo-400">{deck.id}</td>
+                    <tr key={deck.id} className="hover:bg-white/5 transition">
+                      <td className="py-3 px-4 text-blue-400">{deck.id}</td>
                       <td className="py-3 px-4 font-sans font-semibold text-slate-100">{deck.name}</td>
-                      <td className="py-3 px-4 text-emerald-405">{deck.cardCount} rows</td>
+                      <td className="py-3 px-4 text-emerald-400">{deck.cardCount} rows</td>
                       <td className="py-3 px-4 text-slate-400 max-w-xs truncate">{deck.description}</td>
                       <td className="py-3 px-4 text-[10px] text-slate-500">{deck.createdAt}</td>
                     </tr>
@@ -335,23 +335,22 @@ export default function RoomConsole({
 
         {/* MOCK ENTITY DIAGRAM view */}
         {activeTab === 'schema' && (
-          <div className="flex-1 flex flex-col bg-slate-950/40 p-5 rounded-2xl border border-slate-800">
+          <div className="flex-1 flex flex-col bg-immersive-panel p-5 rounded-2xl border border-white/5 w-full">
             <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 mb-4">
               Database Unified Modeling Diagram (ERD)
             </h3>
             
             {/* SVG Schematics */}
-            <div className="flex-1 min-h-[250px] flex items-center justify-center border border-dashed border-slate-800 rounded-xl bg-slate-950/80 p-4 overflow-x-auto">
+            <div className="flex-1 min-h-[250px] flex items-center justify-center border border-dashed border-white/10 rounded-xl bg-[#050608] p-4 overflow-x-auto">
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-14 leading-none">
-                
-                {/* Decks Entity */}
-                <div className="border border-slate-700 bg-slate-900 rounded-xl p-3 w-48 shadow-lg font-mono">
-                  <div className="bg-indigo-950 px-2 py-1.5 rounded-lg border border-indigo-500/30 mb-2">
-                    <span className="text-[11px] font-bold text-indigo-300">TableName: decks</span>
+                           {/* Decks Entity */}
+                <div className="border border-white/10 bg-[#0a0c12]/80 rounded-xl p-3 w-48 shadow-lg font-mono">
+                  <div className="bg-blue-950/40 px-2 py-1.5 rounded-lg border border-blue-500/20 mb-2">
+                    <span className="text-[11px] font-bold text-blue-300">TableName: decks</span>
                   </div>
                   <div className="space-y-1.5 text-[10px] text-slate-350">
-                    <div className="flex justify-between border-b border-slate-800 pb-1">
-                      <span className="text-indigo-400">🔑 id</span>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span className="text-blue-400">🔑 id</span>
                       <span className="text-slate-500">VARCHAR [PK]</span>
                     </div>
                     <div>name: VARCHAR</div>
@@ -361,23 +360,23 @@ export default function RoomConsole({
                 </div>
 
                 {/* Left/Right connector with label */}
-                <div className="flex md:flex-col items-center gap-1.5 text-indigo-400">
-                  <span className="text-[9px] font-mono uppercase bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-400/20">1 : N relation</span>
-                  <div className="h-0.5 w-10 md:w-0.5 md:h-12 bg-indigo-500/50"></div>
-                  <ArrowRight className="h-4 w-4 transform md:rotate-90 text-indigo-500" />
+                <div className="flex md:flex-col items-center gap-1.5 text-blue-400">
+                  <span className="text-[9px] font-mono uppercase bg-[#050608] text-blue-305 px-1.5 py-0.5 rounded border border-white/5 font-semibold">1 : N relation</span>
+                  <div className="h-0.5 w-10 md:w-0.5 md:h-12 bg-blue-500/30"></div>
+                  <ArrowRight className="h-4 w-4 transform md:rotate-90 text-blue-450" />
                 </div>
 
                 {/* Cards Entity */}
-                <div className="border border-slate-700 bg-slate-900 rounded-xl p-3 w-56 shadow-lg font-mono">
-                  <div className="bg-emerald-950 px-2 py-1.5 rounded-lg border border-emerald-500/30 mb-2">
+                <div className="border border-white/10 bg-[#0a0c12]/80 rounded-xl p-3 w-56 shadow-lg font-mono">
+                  <div className="bg-emerald-950/40 px-2 py-1.5 rounded-lg border border-emerald-500/20 mb-2">
                     <span className="text-[11px] font-bold text-emerald-300">TableName: cards</span>
                   </div>
                   <div className="space-y-1.5 text-[10px] text-slate-350 font-mono">
-                    <div className="flex justify-between border-b border-slate-800 pb-1">
+                    <div className="flex justify-between border-b border-white/5 pb-1">
                       <span className="text-emerald-400">🔑 id</span>
                       <span className="text-slate-500">VARCHAR [PK]</span>
                     </div>
-                    <div className="flex justify-between text-indigo-455">
+                    <div className="flex justify-between text-blue-405">
                       <span>🔗 deckId</span>
                       <span className="text-slate-500">VARCHAR [FK]</span>
                     </div>
@@ -396,16 +395,16 @@ export default function RoomConsole({
 
         {/* SANDBOX API BRIDGE LOGS */}
         {activeTab === 'logs' && (
-          <div className="flex-1 flex flex-col space-y-3 h-full">
+          <div className="flex-1 flex flex-col space-y-3 h-full w-full">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono text-slate-450 uppercase">Telemetry: Applets Sandboxed Hooks Events</span>
-              <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+              <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
                 <CheckCircle className="h-3.5 w-3.5" /> API Bridge Online
               </span>
             </div>
 
             {/* List logs */}
-            <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-xl flex-1 overflow-y-auto font-mono text-[11px] space-y-2 min-h-[220px]">
+            <div className="bg-[#050608]/80 border border-white/5 p-4 rounded-xl flex-1 overflow-y-auto font-mono text-[11px] space-y-2 min-h-[220px]">
               {bridgeLogs.length === 0 ? (
                 <div className="text-slate-600 italic text-center py-10">
                   No bridge calls registered yet. Play with cards or run locking threads in the console.
@@ -413,13 +412,13 @@ export default function RoomConsole({
               ) : (
                 bridgeLogs.map((log) => {
                   let badge = "text-slate-400";
-                  if (log.action === 'READ') badge = "text-indigo-400 bg-indigo-950/50 px-1 rounded";
-                  else if (log.action === 'WRITE') badge = "text-emerald-400 bg-emerald-950/50 px-1 rounded";
-                  else if (log.action === 'BLOCK') badge = "text-rose-400 bg-rose-950/50 px-1 rounded font-bold animate-pulse";
-                  else if (log.action === 'LOG') badge = "text-amber-400 bg-amber-950/50 px-1 rounded";
+                  if (log.action === 'READ') badge = "text-blue-400 bg-blue-950/30 px-1.5 py-0.5 rounded border border-blue-500/10";
+                  else if (log.action === 'WRITE') badge = "text-emerald-450 bg-emerald-950/30 px-1.5 py-0.5 rounded border border-emerald-500/10";
+                  else if (log.action === 'BLOCK') badge = "text-rose-400 bg-rose-950/30 px-1.5 py-0.5 rounded border border-rose-500/10 font-bold animate-pulse";
+                  else if (log.action === 'LOG') badge = "text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-500/10";
 
                   return (
-                    <div key={log.id} className="border-b border-slate-800/30 pb-2 flex flex-col sm:flex-row sm:items-start justify-between gap-1">
+                    <div key={log.id} className="border-b border-white/5 pb-2 flex flex-col sm:flex-row sm:items-start justify-between gap-1">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <span className="text-slate-500">[{log.timestamp}]</span>
@@ -440,10 +439,10 @@ export default function RoomConsole({
 
         {/* SQL ORM CODE TESTER */}
         {activeTab === 'sql' && (
-          <div className="flex-1 flex flex-col space-y-4 h-full">
+          <div className="flex-1 flex flex-col space-y-4 h-full w-full">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono text-slate-450 uppercase">Execute Direct Room DB Schema Queries</span>
-              <p className="text-xs text-slate-450 font-sans">
+              <span className="text-[11px] font-mono text-slate-400 uppercase font-semibold">Execute Direct Room DB Schema Queries</span>
+              <p className="text-xs text-slate-400 font-sans leading-relaxed">
                 Type directly inside the SQL terminal to execute direct query reads against the simulated cards schema dataset.
               </p>
             </div>
@@ -452,38 +451,38 @@ export default function RoomConsole({
               
               {/* Terminal code side */}
               <div className="lg:col-span-5 space-y-3">
-                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-[10px] font-mono text-slate-400">
+                <div className="bg-[#050608]/80 p-2.5 rounded-xl border border-white/5">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2 text-[10px] font-mono text-slate-400">
                     <span className="flex items-center gap-1"><Terminal className="h-3.5 w-3.5" /> Room SQLite Terminal</span>
                   </div>
                   <textarea
                     rows={4}
                     value={sqlQuery}
                     onChange={(e) => setSqlQuery(e.target.value)}
-                    className="w-full bg-transparent font-mono text-xs text-indigo-200 outline-none resize-none"
+                    className="w-full bg-transparent font-mono text-xs text-blue-300 outline-none resize-none"
                     placeholder="SELECT * FROM cards WHERE ..."
                   />
                 </div>
 
                 {/* Templates selectors */}
-                <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
-                  <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Query Templates:</span>
+                <div className="bg-immersive-nav/60 p-3 rounded-xl border border-white/5 space-y-2">
+                  <span className="text-[9px] font-mono text-slate-450 uppercase tracking-wider block font-bold">Query Templates:</span>
                   <div className="flex flex-col gap-1.5 text-[10px] font-mono">
                     <button 
                       onClick={() => setSqlQuery("SELECT * FROM cards WHERE intervalDays <= 3;")}
-                      className="text-left text-indigo-400 hover:underline truncate"
+                      className="text-left text-blue-400 hover:underline hover:text-blue-300 truncate cursor-pointer"
                     >
                       ✦ Select high-efficiency cards (interval &le; 3 days)
                     </button>
                     <button 
                       onClick={() => setSqlQuery("SELECT * FROM cards WHERE deckId = 'deck-1';")}
-                      className="text-left text-indigo-400 hover:underline truncate"
+                      className="text-left text-blue-400 hover:underline hover:text-blue-300 truncate cursor-pointer"
                     >
                       ✦ Select Japanese vocabulary cards
                     </button>
                     <button 
                       onClick={() => setSqlQuery("SELECT * FROM decks;")}
-                      className="text-left text-indigo-400 hover:underline truncate"
+                      className="text-left text-blue-400 hover:underline hover:text-blue-300 truncate cursor-pointer"
                     >
                       ✦ Inspect decks folders records
                     </button>
@@ -492,7 +491,7 @@ export default function RoomConsole({
 
                 <button
                   onClick={executeSQL}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition shadow-[0_0_12px_rgba(37,99,235,0.25)] hover:shadow-[0_0_16px_rgba(37,99,235,0.4)] active:scale-[0.98]"
                   id="btn-execute-custom-sql"
                 >
                   <Play className="h-4 w-4" /> Run Query
@@ -500,27 +499,27 @@ export default function RoomConsole({
               </div>
 
               {/* Outputs side */}
-              <div className="lg:col-span-7 bg-slate-950 border border-slate-800 p-4 rounded-xl font-mono text-[11px] overflow-y-auto max-h-[280px]">
+              <div className="lg:col-span-7 bg-[#050608]/85 border border-white/5 p-4 rounded-xl font-mono text-[11px] overflow-y-auto max-h-[280px]">
                 {sqlError ? (
-                  <div className="text-rose-400 font-mono text-xs">
+                  <div className="text-rose-455 font-mono text-xs">
                     ❌ {sqlError}
                   </div>
                 ) : sqlResult ? (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-slate-500 text-[10px] border-b border-slate-800 pb-1.5">
+                    <div className="flex items-center justify-between text-slate-500 text-[10px] border-b border-white/5 pb-1.5">
                       <span>Query OK: returned {sqlResult.length} rows</span>
                       <span>Execution Speed: 0.2ms</span>
                     </div>
                     {sqlResult.length === 0 ? (
-                      <span className="text-slate-650 italic">Empty rows returned</span>
+                      <span className="text-slate-600 italic">Empty rows returned</span>
                     ) : (
-                      <pre className="text-indigo-200 text-[10px] leading-relaxed whitespace-pre-wrap select-all">
+                      <pre className="text-blue-300 text-[10px] leading-relaxed whitespace-pre-wrap select-all">
                         {JSON.stringify(sqlResult, null, 2)}
                       </pre>
                     )}
                   </div>
                 ) : (
-                  <div className="text-slate-600 italic text-center py-12">
+                  <div className="text-slate-600 italic text-center py-12 font-sans">
                     Output window. Execute a query on the left.
                   </div>
                 )}

@@ -11,6 +11,7 @@ import {
 } from './data/mockDatabase';
 import { defaultPlugins } from './data/defaultPlugins';
 import { Card, Deck, Plugin, BridgeLog } from './types';
+import { executePluginSandbox } from './lib/SandboxExecutor';
 
 // Importing Custom Sub-components
 import AndroidEmulator from './components/AndroidEmulator';
@@ -71,7 +72,7 @@ export default function App() {
 
   // Triggers visual android alerts at top of dashboard
   const handleRaiseNotification = (message: string) => {
-    const notifyId = `notify-${Date.now()}`;
+    const notifyId = `notify-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     setPhoneNotifications(prev => [...prev, { id: notifyId, message }]);
     
     // Auto purge notification after 4000ms
@@ -88,10 +89,15 @@ export default function App() {
         handleLogBridgeAction(
           p.name, 
           'WRITE', 
-          `Toggled plugin state: ${nextEnabled ? 'ENABLED' : 'DISABLED'}`
+          `Toggled plugin state: ${nextEnabled ? 'ENABLED' : 'DISABLED'}. Resetting logs and errors.`
         );
         handleRaiseNotification(`Plugin "${p.name}" is now ${nextEnabled ? 'enabled' : 'disabled'}.`);
-        return { ...p, isEnabled: nextEnabled };
+        return { 
+          ...p, 
+          isEnabled: nextEnabled, 
+          error: undefined, 
+          errorLog: undefined 
+        };
       }
       return p;
     }));
@@ -106,10 +112,39 @@ export default function App() {
           'WRITE', 
           `Committed script edits directly. QuickJS sandbox bindings refreshed.`
         );
-        return { ...p, code };
+        return { 
+          ...p, 
+          code, 
+          error: undefined, 
+          errorLog: undefined 
+        };
       }
       return p;
     }));
+  };
+
+  const handlePluginStatusChange = (pluginId: string, error: string | null, errorLog?: string[]) => {
+    setPlugins(prev => prev.map(p => {
+      if (p.id === pluginId) {
+        return {
+          ...p,
+          error: error || undefined,
+          errorLog: errorLog || undefined
+        };
+      }
+      return p;
+    }));
+  };
+
+  const handleAddPlugin = (newPlugin: Plugin) => {
+    setPlugins(prev => [...prev, newPlugin]);
+    setActivePluginId(newPlugin.id);
+    handleLogBridgeAction(
+      newPlugin.name,
+      'WRITE',
+      `Registered new custom plugin.`
+    );
+    handleRaiseNotification(`Added new plugin: "${newPlugin.name}".`);
   };
 
   // Adding a card directly in Room SQLite console
@@ -119,7 +154,7 @@ export default function App() {
     back: string, 
     customFields?: Record<string, string>
   ) => {
-    const newId = `card-${deckId.split('-')[1]}-${Date.now()}`;
+    const newId = `card-${deckId.split('-')[1]}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const newCard: Card = {
       id: newId,
       deckId,
@@ -155,28 +190,55 @@ export default function App() {
   };
 
   // Triggers Scheduler execution upon flashcard score rating (Again, Hard, Good, Easy)
-  const handleAnswerSelected = (rating: number) => {
+  const handleAnswerSelected = async (rating: number) => {
     // Collect active deck files
     const activeDeckCards = cards.filter(c => c.deckId === activeDeckId);
     const activeCard = activeDeckCards[currentCardIndex];
     if (!activeCard) return;
 
-    let modifiedCard = { ...activeCard };
-    
-    // Check if Leitner Scheduler plugin is active
-    const schedulerPlugin = plugins.find(p => p.id === 'plugin-leitner-scheduler' && p.isEnabled);
+    // Check if any onAnswerSelected scheduling plugins are active
+    const schedulerPlugin = plugins.find(p => p.isEnabled && p.hookType === 'onAnswerSelected');
 
     if (schedulerPlugin) {
       handleLogBridgeAction(
         schedulerPlugin.name,
         'READ',
-        `Acquired Mutex cards, user. Running Custom scheduler logic.`
+        `Acquired Mutex cards, user. Running custom scheduler in Sandbox.`
       );
 
-      // Apply Leitner logic
-      let ease = modifiedCard.easeFactor;
-      let interval = modifiedCard.intervalDays;
-      let reps = modifiedCard.repetitions;
+      try {
+        const result = await executePluginSandbox(
+          'onAnswerSelected',
+          { card: activeCard, rating },
+          {
+            plugin: schedulerPlugin,
+            cards,
+            decks,
+            onLogBridgeAction: handleLogBridgeAction,
+            onNotificationRaised: handleRaiseNotification,
+            onUpdateCardRecord: (card) => {
+              handleModifyCard(card);
+            }
+          }
+        );
+
+        if (result.error) {
+          handleRaiseNotification(`🔴 Scheduler Sandbox failed: ${result.error}`);
+          handlePluginStatusChange(schedulerPlugin.id, result.error, result.logs);
+        } else {
+          handleModifyCard(result.card);
+        }
+      } catch (err: any) {
+        const errMsg = err.message || String(err);
+        handleRaiseNotification(`🔴 Scheduler executing error: ${errMsg}`);
+        handlePluginStatusChange(schedulerPlugin.id, errMsg, [errMsg]);
+      }
+    } else {
+      // Default standard SM-2 intervals logic if no scheduler is active
+      const ratingStrs = ["", "Again", "Hard", "Good", "Easy"];
+      let ease = activeCard.easeFactor;
+      let interval = activeCard.intervalDays;
+      let reps = activeCard.repetitions;
 
       if (rating === 1) { // AGAIN
         ease = Math.max(130, ease - 20);
@@ -195,36 +257,26 @@ export default function App() {
         reps += 1;
       }
 
-      const fields = modifiedCard.customFields || {};
-      fields.scheduler_type = "Custom Leitner Exp";
-      fields.last_ratingStr = ["", "Again", "Hard", "Good", "Easy"][rating];
-      fields.calculated_ease = ease.toString();
+      const defaultModified: Card = {
+        ...activeCard,
+        easeFactor: ease,
+        intervalDays: interval,
+        repetitions: reps,
+        customFields: {
+          ...(activeCard.customFields || {}),
+          scheduler_type: "Standard SM-2 Engine",
+          last_ratingStr: ratingStrs[rating]
+        }
+      };
 
-      modifiedCard.easeFactor = ease;
-      modifiedCard.intervalDays = interval;
-      modifiedCard.repetitions = reps;
-      modifiedCard.customFields = fields;
-
-      handleLogBridgeAction(
-        schedulerPlugin.name,
-        'WRITE',
-        `Room sqlite UPDATE: Set easeFactor=${ease}, intervalDays=${interval} for card: '${modifiedCard.front}'`
-      );
-
-      handleRaiseNotification(`Leitner Opt: next review in ${interval} days!`);
-    } else {
-      // Default standard SM-2 intervals logic if no scheduler is active
-      const ratingStrs = ["", "Again", "Hard", "Good", "Easy"];
       handleLogBridgeAction(
         "Standard SM-2 Engine",
         'WRITE',
-        `Standard Rating updated [${ratingStrs[rating]}] for card ${modifiedCard.id}.`
+        `Standard Rating updated [${ratingStrs[rating]}] for card '${activeCard.front}'.`
       );
+      handleModifyCard(defaultModified);
       handleRaiseNotification(`SM-2 scheduling queued. Next review updated.`);
     }
-
-    // Persist card updating state
-    handleModifyCard(modifiedCard);
 
     // Advanced study loop indexer
     if (currentCardIndex + 1 < activeDeckCards.length) {
@@ -240,54 +292,83 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none selection:bg-indigo-650" id="main-applet-canvas">
+    <div className="min-h-screen bg-immersive-bg text-slate-300 flex flex-col font-sans select-none selection:bg-blue-600/30" id="main-applet-canvas">
       
       {/* Visual background atmospheric elements */}
-      <div className="absolute top-0 left-0 right-0 h-[400px] bg-indigo-900/10 brightness-75 filter blur-3xl pointer-events-none z-0"></div>
+      <div className="absolute top-0 left-0 right-0 h-[250px] bg-blue-950/10 brightness-50 filter blur-3xl pointer-events-none z-0"></div>
 
-      {/* Primary Top Header Area */}
-      <header className="p-6 md:p-8 border-b border-slate-900 relative z-10 max-w-7xl mx-auto w-full">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 text-xs font-mono font-bold uppercase tracking-wider">
-                Simulation Sandbox Hub
-              </span>
+      {/* Primary Top Header Area - Styled as the Immersive UI Nav Header */}
+      <header className="bg-immersive-nav border-b border-blue-900/30 w-full relative z-10 transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch justify-between divide-y md:divide-y-0 md:divide-x divide-blue-900/20">
+          
+          {/* Left part: Title, Launcher Logo, Version info */}
+          <div className="flex flex-1 items-center gap-4 p-5 md:p-6">
+            <div className="w-10 h-10 rounded bg-blue-600 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.45)]">
+              <span className="text-white font-bold font-display text-sm tracking-widest">AD</span>
             </div>
-            <h1 className="text-3xl font-sans font-bold tracking-tight text-white mt-1.5" id="applet-title">
-              AnkiDroid No-Code Plugin Ecosystem
-            </h1>
-            <p className="text-sm text-slate-400 font-sans max-w-2xl leading-relaxed">
-              Analyze a concurrent multi-threaded JavaScript simulation in QuickJS. Double-test race conditions, write back custom plugins code, and observe real-time database schema visualizers safely without native Android namespaces risk.
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase text-blue-400 font-mono tracking-wider font-bold">Simulation Sandbox Hub</span>
+              <h1 className="text-lg md:text-xl font-display font-bold text-white tracking-wide uppercase leading-tight" id="applet-title">
+                AnkiDroid Plugin Engine
+              </h1>
+              <p className="text-[10px] text-slate-400 font-mono">v2.1.0-alpha • QuickJS Secure Runtime</p>
+            </div>
+          </div>
+
+          {/* Middle part: Real paragraph description */}
+          <div className="flex-[1.5] flex items-center p-5 md:p-6 text-xs text-slate-400 leading-normal font-sans">
+            <p>
+              Analyze a concurrent multi-threaded QuickJS simulation. Test race conditions with mutex lock guards, write and compile custom plugins, and monitor localized Room SQLite tables dynamically in real-time.
             </p>
           </div>
 
-          {/* Quick Metrics display */}
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Lock Guard Pill indicator */}
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-3">
-              <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400">
-                <ShieldCheck className="h-4 w-4" />
-              </div>
-              <div className="font-mono text-xs">
-                <span className="text-slate-455 block leading-none uppercase text-[9px] font-bold tracking-wider">System State</span>
-                <span className="text-emerald-400 font-semibold">Protected Locks</span>
+          {/* Right part: System Load Indicator and Pill Badges */}
+          <div className="flex items-center gap-6 p-5 md:p-6 shrink-0 bg-black/10 justify-between md:justify-start">
+            <div className="flex flex-col items-start md:items-end">
+              <span className="text-[9px] uppercase text-slate-500 font-semibold tracking-wider font-mono">System Load</span>
+              <div className="flex gap-1 mt-1.5">
+                <div className="w-1 h-3.5 bg-blue-500"></div>
+                <div className="w-1 h-3.5 bg-blue-500"></div>
+                <div className="w-1 h-3.5 bg-blue-500"></div>
+                <div className="w-1 h-3.5 bg-slate-700"></div>
+                <div className="w-1 h-3.5 bg-slate-700"></div>
               </div>
             </div>
+            
+            <div className="h-8 w-[1px] bg-white/10 hidden sm:block"></div>
+            
+            <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-emerald-400 text-[11px] font-medium font-mono uppercase tracking-wider">Engine Online</span>
+            </div>
+          </div>
 
-            {/* Total Database Tables */}
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-3">
-              <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-400">
-                <Database className="h-4 w-4" />
-              </div>
-              <div className="font-mono text-xs">
-                <span className="text-slate-455 block leading-none uppercase text-[9px] font-bold tracking-wider">Dataset rows</span>
-                <span className="text-slate-200 font-semibold">{cards.length} Cards • {decks.length} Decks</span>
-              </div>
+        </div>
+      </header>
+
+      {/* Quick Metrics stats runner bar inside main */}
+      <div className="max-w-7xl mx-auto w-full px-6 md:px-8 pt-5 md:pt-6 flex flex-wrap gap-4 items-center justify-between z-10">
+        <div className="text-[11px] text-slate-500 font-mono uppercase tracking-wider">
+          Diagnostic Real-Time Feeds:
+        </div>
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Lock Guard Pill indicator */}
+          <div className="px-3.5 py-1.5 bg-immersive-panel border border-white/5 rounded-full flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <div className="text-[10px] font-mono text-slate-400">
+              State: <span className="text-emerald-400 font-bold uppercase">Protected Locks</span>
+            </div>
+          </div>
+
+          {/* Total Database Tables */}
+          <div className="px-3.5 py-1.5 bg-immersive-panel border border-white/5 rounded-full flex items-center gap-2">
+            <Database className="h-3.5 w-3.5 text-blue-400" />
+            <div className="text-[10px] font-mono text-slate-400">
+              Database rows: <span className="text-white font-semibold">{cards.length} Cards • {decks.length} Decks</span>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Studio Body section */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 overflow-hidden">
@@ -312,6 +393,11 @@ export default function App() {
               onTogglePlugin={handleTogglePlugin}
               onAnswerSelected={handleAnswerSelected}
               onNotificationRaised={handleRaiseNotification}
+              onModifyCard={handleModifyCard}
+              onPluginStatusChange={handlePluginStatusChange}
+              onLogBridgeAction={handleLogBridgeAction}
+              onSelectStudioTab={setStudioTab}
+              onSetActivePluginId={setActivePluginId}
             />
           </div>
         </div>
@@ -320,7 +406,7 @@ export default function App() {
         <div className="lg:col-span-8 flex flex-col h-full gap-5">
           
           {/* Main Dashboard tabs selector */}
-          <div className="flex bg-slate-900 border border-slate-800/80 p-1.5 rounded-2xl self-start">
+          <div className="flex bg-immersive-panel border border-white/5 p-1 rounded-2xl self-start">
             {[
               { id: 'locks', icon: Layers, label: 'Thread Lock Manager Engine' },
               { id: 'room', icon: Database, label: 'Room SQLite Diagnostic Tables' },
@@ -333,8 +419,8 @@ export default function App() {
                   onClick={() => setStudioTab(tab.id as any)}
                   className={`px-4 py-2.5 rounded-xl text-xs font-sans font-medium transition cursor-pointer flex items-center gap-2 ${
                     studioTab === tab.id 
-                      ? 'bg-slate-800 text-white shadow-lg shadow-slate-900/40 border border-slate-700/30' 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850/50'
+                      ? 'bg-blue-600/10 text-blue-400 shadow-md border border-blue-500/30' 
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                   }`}
                   id={`studio-tab-selector-${tab.id}`}
                 >
@@ -371,6 +457,7 @@ export default function App() {
                 activePluginId={activePluginId}
                 onSelectPlugin={setActivePluginId}
                 onUpdatePluginCode={handleUpdatePluginCode}
+                onAddPlugin={handleAddPlugin}
               />
             )}
           </div>
@@ -405,13 +492,18 @@ export default function App() {
       </div>
 
       {/* Humble craft metadata footer */}
-      <footer className="py-6 px-8 border-t border-slate-900 select-text max-w-7xl mx-auto w-full text-center flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-mono">
-        <div>
-          AnkiDroid QuickJS Sandbox Platform Simulation • Built 2026.
-        </div>
-        <div className="flex gap-4">
-          <span>Determinism Order Algorithm Guard</span>
-          <span>SQLite Room Relations Map</span>
+      <footer className="bg-immersive-nav border-t border-white/5 py-4 px-8 mt-auto z-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-500 font-mono">
+          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+            <span className="text-slate-600 font-bold uppercase tracking-wider text-[9px] border border-blue-900/30 px-1.5 py-0.5 rounded">JETPACK COMPOSE COMPATIBLE</span>
+            <span className="text-slate-700">|</span>
+            <span>QUICKJS_VER: 2021-03-27</span>
+            <span className="text-slate-700">|</span>
+            <span>AnkiDroid QuickJS Platform Simulation • 2026</span>
+          </div>
+          <div className="flex items-center gap-4 text-blue-500/85 font-mono font-bold uppercase tracking-widest italic text-[9px]">
+            Secure Sandbox Runtime
+          </div>
         </div>
       </footer>
 

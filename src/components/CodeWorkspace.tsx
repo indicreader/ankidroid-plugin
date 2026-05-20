@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plugin } from '../types';
 import { 
   FileCode, 
@@ -16,7 +16,9 @@ import {
   Save,
   Check,
   Play,
-  Cpu
+  Cpu,
+  Plus,
+  Upload
 } from 'lucide-react';
 
 interface CodeWorkspaceProps {
@@ -24,13 +26,15 @@ interface CodeWorkspaceProps {
   activePluginId: string;
   onSelectPlugin: (id: string) => void;
   onUpdatePluginCode: (id: string, code: string) => void;
+  onAddPlugin: (plugin: Plugin) => void;
 }
 
 export default function CodeWorkspace({
   plugins,
   activePluginId,
   onSelectPlugin,
-  onUpdatePluginCode
+  onUpdatePluginCode,
+  onAddPlugin
 }: CodeWorkspaceProps) {
   
   const activePlugin = plugins.find(p => p.id === activePluginId) || plugins[0];
@@ -38,6 +42,54 @@ export default function CodeWorkspace({
   const [saveStatus, setSaveStatus] = useState<'IDLE' | 'SAVING' | 'SAVED'>('IDLE');
   const [syntaxStatus, setSyntaxStatus] = useState<'OK' | 'ERROR' | null>(null);
   const [syntaxMessage, setSyntaxMessage] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const code = event.target?.result as string;
+      const newPluginId = `plugin-custom-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      onAddPlugin({
+        id: newPluginId,
+        name: file.name.replace(/\.[^/.]+$/, ""), // remove extension
+        description: 'Imported custom plugin script',
+        version: '1.0.0',
+        author: 'User',
+        isEnabled: false,
+        requiredPermissions: ['READ_CARDS', 'WRITE_CARDS'],
+        requiredLocks: ['cards'],
+        hookType: 'onCardLoad',
+        code: code
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCreateNewPlugin = () => {
+    const newPluginId = `plugin-custom-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const code = `// New QuickJS Custom Plugin\n\nfunction process() {\n  bridge.log("New plugin execution started...");\n  \n}\n\nprocess();`;
+    
+    onAddPlugin({
+      id: newPluginId,
+      name: `Custom Plugin ${plugins.length + 1}`,
+      description: 'A new user-created plugin',
+      version: '1.0.0',
+      author: 'User',
+      isEnabled: false,
+      requiredPermissions: ['READ_CARDS', 'WRITE_CARDS'],
+      requiredLocks: ['cards'],
+      hookType: 'onCardLoad',
+      code: code
+    });
+  };
 
   // Sync editor with active plugin selection
   useEffect(() => {
@@ -93,8 +145,30 @@ export default function CodeWorkspace({
         </div>
 
         {/* Plugin selector dropdown */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-slate-450">Active Script:</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="file"
+            accept=".js,.ts,.txt"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition"
+            title="Upload Plugin File"
+          >
+            <Upload className="h-3.5 w-3.5" /> Upload
+          </button>
+          <button
+            onClick={handleCreateNewPlugin}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition"
+            title="Write New Plugin"
+          >
+            <Plus className="h-3.5 w-3.5" /> New
+          </button>
+          
+          <span className="text-[10px] font-mono text-slate-450 ml-2">Active Script:</span>
           <select
             value={activePluginId}
             onChange={(e) => onSelectPlugin(e.target.value)}

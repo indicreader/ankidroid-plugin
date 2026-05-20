@@ -34,6 +34,8 @@ export interface Plugin {
   requiredLocks: string[]; // Resources locked during execution: e.g. "cards", "decks", "user"
   hookType: 'onCardLoad' | 'onAnswerSelected' | 'onAppStart' | 'onReviewComplete';
   code: string;
+  error?: string; // Compiliation or runtime error message
+  errorLog?: string[]; // Detailed runtime exception traceback
 }
 
 export interface LockState {

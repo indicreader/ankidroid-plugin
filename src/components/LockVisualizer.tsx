@@ -310,16 +310,16 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
   }, [isSimulating, threads, resources, useAlphabeticalSorting, simulationSpeed]);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full" id="lock-visualizer-container">
+    <div className="bg-[#0f111a] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full" id="lock-visualizer-container">
       {/* Header Banner */}
-      <div className="p-5 border-b border-slate-800 bg-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 border-b border-white/5 bg-[#0a0c12] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-sans font-semibold tracking-tight text-slate-100 flex items-center gap-2">
-            <Layers className="h-5 w-5 text-indigo-400" id="lock-icon-layers" />
+            <Layers className="h-5 w-5 text-blue-400" id="lock-icon-layers" />
             QuickJS Mutex Sandbox & Concurrency Engine
           </h2>
           <p className="text-xs text-slate-400">
-            Simulates thread locking mechanics and demonstrates deadlock prevention through alphabetical resource排序.
+            Simulates thread locking mechanics and demonstrates deadlock prevention through alphabetical resource scheduling.
           </p>
         </div>
         
@@ -332,8 +332,8 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
           disabled={isSimulating}
           className={`px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-2 transition duration-200 cursor-pointer ${
             useAlphabeticalSorting 
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' 
-              : 'bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/15'
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]' 
+              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/15'
           }`}
           id="toggle-lock-sorting-guard"
         >
@@ -347,21 +347,21 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
       </div>
 
       {/* Main Interactive Grid */}
-      <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-y-auto">
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-y-auto w-full">
         
         {/* Left Hand: Mutex States & Resources */}
         <div className="lg:col-span-4 flex flex-col h-full gap-5">
-          <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80 flex flex-col flex-1 justify-between">
+          <div className="bg-immersive-panel p-5 rounded-2xl border border-white/5 flex flex-col flex-1 justify-between">
             <div>
               <h3 className="text-xs font-mono font-medium uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
                 <span>Resource Mutex Map</span>
-                <span className="px-2 py-0.5 rounded text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 font-mono">
+                <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-400/20 font-mono">
                   Room DB locks
                 </span>
               </h3>
 
               {/* Resource node list */}
-              <div className="space-y-3.5">
+              <div className="space-y-3.5 border-white/5">
                 {Object.keys(resources).map((key) => {
                   const res = resources[key];
                   const isLocked = res.status === 'LOCKED';
@@ -372,20 +372,20 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
                       key={res.resource}
                       className={`p-3.5 rounded-xl border transition-all duration-300 flex items-center justify-between ${
                         deadlocked && isLocked
-                          ? 'bg-rose-950/30 border-rose-500/40 text-rose-200 shadow-lg shadow-rose-950/20'
+                          ? 'bg-rose-950/20 border-rose-500/30 text-rose-300 shadow-lg shadow-rose-950/20'
                           : isLocked
-                          ? 'bg-indigo-950/30 border-indigo-500/40 text-indigo-200'
-                          : 'bg-slate-900/40 border-slate-800 text-slate-300'
+                          ? 'bg-blue-950/20 border-blue-500/30 text-blue-300 shadow-sm'
+                          : 'bg-immersive-nav/50 border-white/5 text-slate-300'
                       }`}
                       id={`resource-node-${res.resource}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
                           deadlocked && isLocked
-                            ? 'bg-rose-500/20 text-rose-400'
+                            ? 'bg-rose-500/25 text-rose-400'
                             : isLocked 
-                            ? 'bg-indigo-500/20 text-indigo-400' 
-                            : 'bg-slate-800 text-slate-400'
+                            ? 'bg-blue-500/25 text-blue-400' 
+                            : 'bg-[#050608] border border-white/5 text-slate-400'
                         }`}>
                           {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                         </div>
@@ -413,12 +413,12 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
             </div>
 
             {/* Explanation card */}
-            <div className="mt-5 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 space-y-2">
+            <div className="mt-5 p-4 rounded-xl bg-immersive-nav/75 border border-white/5 text-xs text-slate-450 space-y-2">
               <div className="flex items-center gap-2 text-slate-200 font-medium">
-                <HelpCircle className="h-4 w-4 text-indigo-400" />
+                <HelpCircle className="h-4 w-4 text-blue-450" />
                 <span>Deterministic Lock Sorted Guard</span>
               </div>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed leading-normal">
                 When plugins request resource locks, ordering matters. Unordered locking breeds <b>deadlocks</b>. Sorting lock keys alphabetically ensures threads request resource keys in the exact same sequence globally, eliminating circular waiting and ensuring safe async resolution in Kotlin.
               </p>
             </div>
@@ -429,12 +429,12 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
         <div className="lg:col-span-8 flex flex-col gap-5 h-full">
           
           {/* Simulation Controls */}
-          <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-immersive-panel p-4 rounded-2xl border border-white/5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={runNormalConcurrency}
                 disabled={isSimulating}
-                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition-all active:scale-[0.98] shadow-[0_0_15px_rgba(37,99,235,0.35)]"
                 id="btn-run-concurrency"
               >
                 <Play className="h-4 w-4" />
@@ -444,7 +444,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
               <button
                 onClick={triggerDeadlockShowcase}
                 disabled={isSimulating}
-                className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-amber-400 border border-slate-700/80 font-medium text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
+                className="bg-[#050608] hover:bg-slate-900 disabled:opacity-50 text-amber-400 border border-white/5 font-medium text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
                 id="btn-run-race-condition"
               >
                 <Zap className="h-4 w-4 text-amber-400 animate-pulse" />
@@ -453,7 +453,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
 
               <button
                 onClick={resetLocksAndThreads}
-                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs p-2.5 rounded-xl cursor-pointer transition-all"
+                className="bg-[#0a0c12] hover:bg-slate-900 border border-white/5 text-slate-300 text-xs p-2.5 rounded-xl cursor-pointer transition-all"
                 title="Reset Sandbox"
                 id="btn-reset-sandbox"
               >
@@ -471,9 +471,9 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
                 step="100"
                 value={simulationSpeed}
                 onChange={(e) => setSimulationSpeed(Number(e.target.value))}
-                className="w-24 h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-400"
+                className="w-24 h-1.5 bg-[#050608]/80 rounded-lg cursor-pointer accent-blue-500"
               />
-              <span className="text-[10px] font-mono text-indigo-400 w-12 text-right">
+              <span className="text-[10px] font-mono text-blue-400 w-12 text-right font-semibold">
                 {simulationSpeed}ms
               </span>
             </div>
@@ -483,9 +483,9 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1 min-h-[300px]">
             
             {/* Thread Progress Panels */}
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80 flex flex-col h-full overflow-y-auto">
+            <div className="bg-immersive-panel p-5 rounded-2xl border border-white/5 flex flex-col h-full overflow-y-auto">
               <h3 className="text-xs font-mono font-medium uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
-                <Layers className="h-4 w-4 text-indigo-400" />
+                <Layers className="h-4 w-4 text-blue-400" />
                 QuickJS Thread Pool
               </h3>
 
@@ -497,14 +497,14 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
               ) : (
                 <div className="space-y-4 flex-1">
                   {threads.map(t => {
-                    let badgeColor = "bg-slate-800 text-slate-300";
+                    let badgeColor = "bg-[#050608] text-slate-400";
                     if (t.stage === 'COMPLETED') badgeColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
                     else if (t.stage === 'ACQUIRING_LOCKS') badgeColor = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
-                    else if (t.stage === 'EXECUTING_CORE') badgeColor = "bg-indigo-500/10 text-indigo-400 border border-indigo-400/20 animate-pulse";
+                    else if (t.stage === 'EXECUTING_CORE') badgeColor = "bg-blue-500/10 text-blue-405 border border-blue-400/20 animate-pulse";
                     else if (t.stage === 'DEADLOCKED') badgeColor = "bg-rose-500/10 text-rose-400 border border-rose-500/20 text-rose-400 font-bold animate-bounce";
                     
                     return (
-                      <div key={t.id} className="p-3.5 rounded-xl bg-slate-900 border border-slate-800/80 space-y-2.5">
+                      <div key={t.id} className="p-3.5 rounded-xl bg bg-[#0a0c12]/55 border border-white/5 space-y-2.5 animate-fade-in">
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <div className="text-xs font-mono font-medium text-slate-200">
@@ -536,7 +536,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                     : isCurrentGoal
                                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse'
-                                    : 'bg-slate-800/60 text-slate-400 border border-slate-800'
+                                    : 'bg-[#050608] text-slate-500 border border-white/5'
                                 }`}>
                                   {lock}
                                 </span>
@@ -546,7 +546,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
                         </div>
 
                         {/* Mini individual logs (last log only) */}
-                        <div className="bg-slate-950/80 px-2.5 py-1.5 rounded border border-slate-800 text-[10px] font-mono text-slate-400 truncate">
+                        <div className="bg-[#050608] px-2.5 py-1.5 rounded border border-white/5 text-[10px] font-mono text-slate-400 truncate">
                           {t.logMsgs[t.logMsgs.length - 1]}
                         </div>
                       </div>
@@ -557,13 +557,13 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
             </div>
 
             {/* Simulated System Log Console */}
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80 flex flex-col h-full overflow-y-auto">
+            <div className="bg-immersive-panel p-5 rounded-2xl border border-white/5 flex flex-col h-full overflow-y-auto">
               <h3 className="text-xs font-mono font-medium uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
                 <span>Thread Event Terminals</span>
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse animate-duration-1000"></span>
               </h3>
 
-              <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex-1 font-mono text-[10px] leading-relaxed text-slate-300 overflow-y-auto space-y-2 select-text">
+              <div className="bg-[#050608] border border-white/5 p-3 rounded-xl flex-1 font-mono text-[10px] leading-relaxed text-slate-350 overflow-y-auto space-y-2 select-text">
                 {simLogs.length === 0 ? (
                   <div className="text-slate-500 italic text-center py-10">
                     Listening for platform thread executions...
@@ -577,7 +577,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
                     else if (log.includes("Warning") || log.includes("⚠️")) logColor = "text-amber-400";
                     
                     return (
-                      <div key={index} className={`${logColor} py-0.5 border-b border-slate-800/20 break-words`}>
+                      <div key={index} className={`${logColor} py-0.5 border-b border-white/5 break-words`}>
                         {log}
                       </div>
                     );
@@ -594,7 +594,7 @@ export default function LockVisualizer({ activePlugins, onLogBridgeAction }: Loc
 
       {/* Deadlock banner warning */}
       {threads.some(t => t.stage === 'DEADLOCKED') && (
-        <div className="bg-rose-950/60 text-rose-300 border-t border-rose-900 p-4 flex items-center gap-4 animate-slide-up font-sans text-xs">
+        <div className="bg-[#1c0d12] text-rose-300 border-t border-rose-900/60 p-4 flex items-center gap-4 animate-slide-up font-sans text-xs">
           <AlertTriangle className="h-6 w-6 text-rose-400 animate-bounce shrink-0" />
           <div className="space-y-1">
             <span className="font-bold">CONCURRENCY FATAL EXCEPTION: ANKIDROID-ENGINE-STACKS-STUCK</span>
