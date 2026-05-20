@@ -1,0 +1,6 @@
+{
+  "name": "AnkiDroid No-Code Plugin Ecosystem",
+  "description": "An interactive database, deadlock-free locking, Jetpack Compose emulator, and QuickJS sandbox modeling playground.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
